@@ -1,3 +1,4 @@
+import scala.annotation.tailrec
 import scala.io.Source
 
 object Day8 {
@@ -8,6 +9,7 @@ object Day8 {
 
   val Line = "(.+) (.+)".r
 
+  @tailrec
   def accUntilEnd(code: Code,
                   index: Int,
                   acc: Int,
