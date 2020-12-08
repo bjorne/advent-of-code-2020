@@ -37,27 +37,28 @@ object Day8 {
   }
 
   val mutations = Map(("jmp" -> "nop"), ("nop" -> "jmp"))
-  def mutateIndex(code: Code, mutIndex: Int): Code =
-    code.take(mutIndex) ++ ((mutations(code(mutIndex)._1), code(mutIndex)._2) :: code
-      .takeRight(code.length - mutIndex - 1))
+
+  def mutateIndex(code: Code, mutIndex: Int): Option[Code] =
+    for {
+      mutInstr <- mutations get code(mutIndex)._1
+    } yield code.updated(mutIndex, (mutInstr, code(mutIndex)._2))
 
   def answerMutated(lines: List[String]): Int = {
     val code = lines.map {
       case Line(cmd, count) => (cmd, count.toInt)
     }
     val successIndex = (0 until code.length).find { mutIndex =>
-      if (mutations.contains(code(mutIndex)._1)) {
-        val mutCode = mutateIndex(code, mutIndex)
-        accUntilEnd(mutCode, 0, 0, Set.empty) match {
-          case (InfiniteLoop, _) => false
-          case (EndOfFile, acc)  => true
-        }
-      } else {
-        false
-      }
+      mutateIndex(code, mutIndex)
+        .exists(
+          mutCode =>
+            accUntilEnd(mutCode, 0, 0, Set.empty) match {
+              case (InfiniteLoop, _) => false
+              case (EndOfFile, acc)  => true
+          }
+        )
     }
     val (_, acc) =
-      accUntilEnd(mutateIndex(code, successIndex.get), 0, 0, Set.empty)
+      accUntilEnd(mutateIndex(code, successIndex.get).get, 0, 0, Set.empty)
     acc
   }
 
